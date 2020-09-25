@@ -20,6 +20,9 @@
   //currentNum という変数名で、最初はインデックスが 0 のクイズから始めたいので 0 としてあげれば OK です。
   let currentNum = 0
 
+  //解答状況を管理する
+  let isAnswered
+
 
 
   //選択肢のシャッフルを処理
@@ -45,6 +48,13 @@
 
   //判定の処理をしていく　
   function checkaAnsewer(li) {
+    if (isAnswered === true) {
+      return
+      //returnでこれ以降の処理は停止する
+      //もし、isAnswered === true（回答したことあるなら）それ以降の処理をしないよということ
+      //一つの選択肢をクリックした時点で、sAnswered === trueになり、そこから他の選択肢をクリックしてもこのif文により処理が中断される
+    }
+    isAnswered = true
     if (li.textContent === quizSet[currentNum].c[0]) {
       //選択肢の０番目は正解にしといた
       li.classList.add('correct')
@@ -52,11 +62,21 @@
     } else {
       li.classList.add('wrong')
     }
+    //選択肢を選んだら、次に行くために、ボタンから disabled クラスを外して青いボタンになるようにしていきましょう。
+    btn.classList.remove('disabled')
   }
 
 
   //画面描画の処理は関数にまとめておきましょう。
   function setQuiz() {
+    isAnswered = false
+
+    //回答の選択肢を表示する前に、一度全部の選択肢を消してあげましょう。
+    while (choices.firstChild) {
+      choices.removeChild(choices.firstChild)
+    }
+    //選択肢を表示する前に実行しているので、初期状態は問題ない
+
     //問題文をセット
     question.textContent = quizSet[currentNum].q
 
@@ -75,11 +95,32 @@
       choices.appendChild(li)
     })
 
+    //最後の問題になったとき、netxボタンの文字を変える
+    if (currentNum === setQuiz.length) {
+      btn.textContent = 'スコアを見る'
+    }
+
     console.log(quizSet[currentNum].c)
     //配列やオブジェクトを引数にすると、値のコピーが関数に渡されるのではなくて参照が渡されるので、渡した引数を関数の中で書き換えてしまうと、引数にした大元の配列も書き換えられてしまう
     //よって大本の配列も変更されてしまう
     //そのため、スプレッド演算子を利用
   }
-
   setQuiz()
+
+
+  //next ボタンを押したときの処理
+  btn.addEventListener('click', () => {
+    if (btn.classList.contains('disabled')) {
+      return;　//kこれでnext ボタン連打を阻止している
+    }
+    //選択肢をクリックした時点でdisabledクラスは外される
+    //nextボタンでdisabledクラスはつけられる
+    btn.classList.add('disabled')//灰色のボタン
+
+    currentNum++
+    setQuiz()
+    //Next ボタンを押すと…、次の問題が出たのですが、前の問題の選択肢が残ってしまっているので
+    //setQuiz() で回答の選択肢を表示する前に、一度全部の選択肢を消してあげましょう。
+    //どうするかというと、 choices の最初の子要素がある限り choices の最初の子要素を消す、というテクニックがよく使われます。
+  })
 }
